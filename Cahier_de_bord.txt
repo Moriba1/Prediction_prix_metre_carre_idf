@@ -1,0 +1,171 @@
+Projet : Prédire, à partir des données immobilières du gouvernement, les tendances du marché sur une région.
+Problématique finale : Comment certains facteurs influencent-ils le prix au m2, et peut‑on prédire leur évolution ?
+
+Jour 1 : Importation du dataset
+Importation au format CSV
+
+Sélection de l’année 2025 / Région : Île‑de‑France
+
+Les colonnes principales utilisées :
+valeur_foncière / code_postal / code_commune / nom_commune / code_departement / surface / surface_terrain / type_local / latitude / longitude, etc.
+
+Préparation des conditions de filtrage du dataset pour demain.
+Deux types de contraintes :
+
+1. Contraintes physiques / logiques
+Surfaces aberrantes → définition d’intervalles réalistes (idem pour d’autres attributs)
+
+Localisation précise : ici, uniquement l’Île‑de‑France
+
+Suppression des types de logements hors Maison et Appartement
+
+2. Contraintes “logistiques”
+Suppression des lignes où les attributs essentiels sont manquants
+
+Jour 2 : Traduction des contraintes en Python
+1. Contrainte géographique
+Selon l’Observatoire des territoires, Paris compte environ 1 399 122 logements.
+C’est largement suffisant pour une étude pertinente, même si une autre région aurait pu être choisie.
+
+2. Contrainte sur la surface
+Selon : https://www.investissement-locatif.info/surface-minimum-legale-pour-louer-a-paris-ce-qu-il-faut-savoir/
+→ Surface minimale légale : 9 m2
+
+Selon : https://fr.wikipedia.org/wiki/Taille_des_logements_en_France
+→ Surface moyenne : 123,7 m2 pour les maisons, 71,4 m2 pour les appartements
+
+Il n’existe pas de surface maximale légale, donc on fixe arbitrairement une limite haute à 400 m2.
+
+3. Contrainte sur le prix
+Selon : https://www.meilleursagents.com/prix-immobilier/ile-de-france/
+→ Prix au m2 :
+
+Appartement : 6 415 € (entre 2 045 et 14 560 €)
+
+Maison : 3 509 € (entre 1 726 et 8 982 €)
+
+Pour filtrer les biens pertinents, on introduit un nouvel attribut essentiel :
+prix_m2 = prix / surface
+
+Deux méthodes possibles pour fixer les bornes :
+
+Valeurs fixes
+
+Méthode IQR
+
+Les deux ensembles étant proches, on conserve l’IQR.
+
+Résumé du jour 2
+On se concentre sur l’Île‑de‑France, marché très dynamique.
+
+Le type de logement (Maison/Appartement) suffit à éliminer les surfaces aberrantes.
+
+On définit les attributs indispensables pour calculer le prix au m2.
+
+On calcule le prix au m2.
+
+On utilise l’IQR pour filtrer les valeurs extrêmes.
+
+Jour 3 : Visualisation des données
+Objectif : afficher les données sous forme de graphiques pour identifier corrélations et facteurs influents.
+
+Questions explorées (via matplotlib) :
+
+Répartition du prix au m2 par département : Done
+
+Département le plus cher / le moins cher : Done
+
+Prix au m2 selon type de logement : Done
+
+Distribution globale du prix au m2 :  Done 
+
+Nombre de pièces vs prix au m2 :  Done
+
+Distribution des surfaces ; Done
+
+Pour aller plus loin : Heatmap
+
+Jour 4 : Préparation du dataset pour l’entraînement
+Le gros du nettoyage est fait.
+On pourrait remplacer certains NaN par la médiane, mais ce n’est pas indispensable.
+
+Le seul champ textuel important est type_local, que l’on convertit en entier (les modèles n’acceptent pas les chaînes).
+
+Même chose pour code_departement :
+Ce n’est pas seulement un string, c’est un label.
+Un modèle pourrait croire que 95 > 77 “signifie quelque chose”, ce qui est faux.
+→ On encode correctement.
+
+On obtient ainsi nos attributs (features) pour prédire le prix au m2.
+
+Sélection des attributs
+Basée sur :
+
+la logique métier
+
+la corrélation
+
+Rappels :
+
+Corrélation proche de −1 : négative
+
+Corrélation proche de 1 : positive
+
+Corrélation proche de 0 : aucune relation
+→ Corrélation ≠ causalité
+
+Attributs retenus : surface, département, année, type, nombre de pièces, surface par pièce.
+Le nombre de pièces semblait douteux, mais c’est logique :
+plus il y a de pièces, plus le prix au m2 tend à baisser (structure différente, public visé, etc.).
+
+Dataset partitionné → prêt pour l’entraînement.
+
+Jour 5 : Standardisation et premier modèle
+Premier modèle : régression linéaire.
+Objectif : ajuster une droite minimisant l’écart aux points.
+
+Résultats :
+
+Sans standardisation :
+
+R2 = 0,4395
+
+RMSE = 7 521 450,61
+
+Avec standardisation : résultats quasi identiques.
+
+Jour 6 : Ajout de nouvelles features
+La normalisation ne change rien.
+
+On ajoute : ville et année.
+
+Résultats :
+
+MSE = 5 931 198,25
+
+R2 = 0,5579
+
+→ On dépasse enfin les 0,5 !
+
+Jour 7 : Random Forest
+Le modèle Random Forest améliore légèrement le score (0,55 → 0,56).
+Ajout de la latitude et longitude → R2 = 0,63.
+
+Tentative d’ajouter la distance à Paris → mauvaise idée, score redescend à 0,61.
+On abandonne cette feature.
+
+Jour 8 : Grid Search
+GridSearchCV (sklearn) teste plusieurs combinaisons d’hyperparamètres du RandomForest.
+Très lent à exécuter.
+Résultats analysés + graphiques.
+
+Jour 9 : Allégement du Grid Search
+Objectif : accélérer l’interprétation.
+Mais le score chute de 0,61 à 0,41.
+
+Jour 10 : Conclusions
+Voir notebook !
+
+
+Merci d'avoir lu,
+Moriba
