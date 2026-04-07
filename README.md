@@ -62,3 +62,5 @@ test de modèles plus avancés
 
 Auteur :
 Soukouna Moriba
+
+(Lien vers le rapport Power Bi : https://upecnumerique-my.sharepoint.com/:u:/r/personal/moriba1_soukouna_etu_u-pec_fr/Documents/Prrojet_PowerBi/Rapport.pbix?csf=1&web=1&e=nCisBz)
